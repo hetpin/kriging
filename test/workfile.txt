@@ -1,0 +1,97 @@
+1.0 mte Lai Chau Muong Te 264612.602683
+2.0 sho Lai Chau Sin Ho  319778.417004
+3.0 lchau Dien Bien Muong Lay(LC) 311156.646521
+4.0 tgiao Dien Bien Tuan Giao 336124.726893
+5.0 dbien Dien Bien Dien Bien 291616.674914
+6.0 sla Son La TX Son La 387388.444282
+7.0 qnhai Son La Quynh Nhai 364930.107807
+8.0 conoi Son La Co Noi 412599.542234
+9.0 phyen Son La Phu Yen 463070.04119
+10.0 mchau Son La Moc Chau 474222.015839
+11.0 tuyen Lao Cai Than Uyen 384197.387499
+12.0 spa Lao Cai Sa Pa 380631.02594
+13.0 lcai Lao Cai TX Lao Cai 393879.437278
+14.0 bha Lao Cai Bac Ha 431356.228979
+15.0 mcchai Yen Bai Mu Cang Chai 417864.717909
+16.0 nlo Yen Bai Nghia Lo 448888.876868
+17.0 ybai Yen Bai TP Yen Bai 487254.350555
+18.0 hgiang Ha Giang TX Ha Giang 498074.439106
+19.0 tquang Tuyen Quang TX Tuyen Quang 523573.1274
+20.0 phuho Phu Tho Phu Ho 523964.631507
+21.0 ptho Phu Tho TP Viet Tri 523957.906021
+22.0 vinhyen Vinh Phuc TX Vinh Yen 562908.246698
+23.0 cbang Cao Bang TX Cao Bang 626220.239052
+24.0 backan Bac Kan TX Bac Kan 575685.881974
+25.0 tnguyen Thai Nguyen TP Thai Nguyen 585436.485052
+26.0 thatkhe Lang Son That Khe 651628.436867
+27.0 lson Lang Son TX Lang Son 681005.593447
+28.0 bgiang Bac Giang TX Bac Giang 624333.694057
+29.0 lucngan Bac Giang Luc Ngan 661782.315175
+30.0 sondong Bac Giang Son Dong 691750.109838
+31.0 mcai Quang Ninh Mong Cai 807314.63732
+32.0 tyen Quang Ninh Tien Yen 742466.804568
+33.0 cuaong Quang Ninh Cua Ong 745492.16148
+34.0 bchay Quang Ninh Bai chay 712737.343865
+35.0 hbinh Hoa Binh TX Hoa Binh 535200.184419
+36.0 stay Ha Tay TX Son Tay 551618.025206
+37.0 nquan Ninh Binh Nho Quan 576435.639185
+38.0 ydinh Thanh Hoa Yen Dinh 564646.149601
+39.0 bthuong Thanh Hoa Bai Thuong 525880.150242
+40.0 hxuan Thanh Hoa Hoi Xuan 498500.314163
+41.0 qchau Nghe An Quy Chau 509975.676805
+42.0 ccuong Nghe An Con Cuong 478823.655442
+43.0 crao Nghe An Cua Rao 445545.333222
+44.0 qhop Nghe An Quy Hop 518136.126862
+45.0 dluong Nghe An Do Luong 532156.583747
+46.0 htinh Ha Tinh TX Ha Tinh 595816.960112
+47.0 hkhe Ha Tinh Huong Khe 567807.478468
+48.0 kanh Ha Tinh Ky Anh 637512.487848
+49.0 thoa Quang Binh Tuyen Hoa  608369.871669
+50.0 badon Quang Binh Ba Don 650636.673553
+51.0 dhoi Quang Binh Dong Hoi 669730.603069
+52.0 dha Quang Tri Dong Ha 722664.54035
+53.0 khesanh Quang Tri Khe Sanh 684620.33379
+54.0 hue Thua.T.Hue Hue 775740.912962
+55.0 aluoi Thua.T.Hue A Luoi 741707.633221
+56.0 ndong Thua.T.Hue Nam Dong 790743.809124
+57.0 dnang Da Nang Da Nang 201105.226749
+58.0 tmy Quang Nam Tra My 202447.113547
+59.0 qngai Quang Ngai TX Quang Ngai 262684.200272
+60.0 bato Quang Ngai Ba To 255997.948563
+61.0 hnhon Binh Dinh Hoai Nhon 282959.53235
+62.0 qnhon Binh Dinh Quy Nhon 307533.31855
+63.0 tuhoa Phu Yen Tuy Hoa 315354.018678
+64.0 ntrang Khanh Hoa Nha Trang 304712.346591
+65.0 cranh Khanh Hoa Cam Ranh 298612.786642
+66.0 prang Ninh Thuan  Phan Rang 279128.789588
+67.0 pthiet Binh Thuan TX Phan Thiet 183807.575701
+68.0 hamtan Binh Thuan La Gi(Ham Tan) 801147.016506
+69.0 dto Kon Tum Dak To 802580.852661
+70.0 ktum Kon Tum TX Kon Tum 823454.782959
+71.0 playku Gia Lai Play Cu 177644.215426
+72.0 ankhe Gia Lai An Khe 250379.243562
+73.0 cheoreo Gia Lai Ayunpa(Cheo Reo) 222841.794836
+74.0 bmthuot Dac Lac Buon Ma Thuot 179305.981749
+76.0 daknong Dac Lac Dac Nong 783910.880466
+77.0 dlat Lam Dong Da Lat 212951.764106
+78.0 bloc Lam Dong Bao Loc 806127.922505
+79.0 plong Binh Phuoc Phuoc Long 716191.102559
+80.0 dphu Binh Phuoc Dong Phu 707125.451364
+81.0 tninh Tay Ninh Tay Ninh 619693.651689
+82.0 xloc Dong Nai Long Khanh(Xuan Loc) 743847.134665
+83.0 trian Dong Nai Tri An 716711.163294
+84.0 vtau Ba Ria-Vung Tau TP Vung Tau 728151.217084
+85.0 condao Ba Ria-Vung Tau Con Dao 676746.75144
+86.0 hcminh Ho Chi Minh Tan Son Nhat 681568.102234
+87.0 mhoa Long An Moc Hoa 603482.813233
+88.0 batri Ben Tre Ba Tri 674985.367475
+89.0 clong Tra Vinh Cang Long 633011.567174
+90.0 clanh Dong Thap Cao Lanh 569357.292422
+91.0 cdoc An Giang Chau Doc 509252.001226
+92.0 rgia Kien Giang Rach Gia 509983.168787
+93.0 pquoc Kien Giang Phu Quoc 387180.802834
+94.0 cantho Can Tho TP Can Tho 585336.637587
+95.0 strang Soc Trang TX Soc Trang 606867.666633
+96.0 baclieu Bac Lieu TX Bac Lieu 582536.633013
+97.0 cmau Ca Mau TP Ca Mau 516976.297904
+98.0 socson TP. Ha Noi Soc Son 588447.603603

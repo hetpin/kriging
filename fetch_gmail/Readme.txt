@@ -1,0 +1,4 @@
+-downloaded_files: file just downloaded
+-processed_files: file from downloaded_files, and successful processed
+-backup_files: All file (both success or error processing)
+-log: Write process log
