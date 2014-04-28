@@ -1,6 +1,9 @@
 from math import radians, cos, sin, asin, sqrt
 import math, time
 import numpy as np
+import scipy.optimize as optimize
+from osgeo import osr, gdal
+
 def haversine(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points 
@@ -39,6 +42,9 @@ def covariance(x, y):
 	for i in xrange(0,size):
 		cov = cov + (x[i]-meanx)*(y[i]-meany)
 	cov = cov/(size-1)
+	#print x
+	#print cov
+	#time.sleep(1)
 	return cov
 def semivariance(x, y):
 	#print x
@@ -97,3 +103,74 @@ def genFitting(h, y, level):
 	return z, mse
 def semiToCov(h, a0, c0):
 	return c0 - spherical(h, a0, c0)
+def func(data, a, b, c):
+    return a*data[:,0]+ b*data[:,1] + c
+#http://stackoverflow.com/questions/15413217/fitting-3d-points-python    
+def curveFitting(A):
+	#A[:,2] = func(A[:,:2], 100.5,3,4)
+	#print A
+	guess = (1,1,1)
+	A = np.asarray(A)
+	guess = (1,1,1)
+	params, pcov = optimize.curve_fit(func, A[:,:2], A[:,2], guess)
+	#print(params)
+	return params
+def inverseMatrix(X):
+	Y = np.zeros([X.shape[1],X.shape[0]])
+	for i in range(X.shape[0]):
+		for j in range(X.shape[1]):
+			Y[j][i] = X[i][j]
+	#print X
+	#print Y
+	return Y
+def exportGeotiff(filename, raster, row, col, resolution, minLon, minLat):
+	format = "GTiff"
+	driver = gdal.GetDriverByName( format )
+	dst_ds = driver.Create(filename, col, row, 1, gdal.GDT_Byte )
+	'''
+	raster = numpy.zeros( (row, col) )
+	for x in xrange(10,20):
+		for y in xrange(10,20):
+			raster[x][y] = 100
+	'''
+	# top left x, w-e pixel resolution, rotation, top left y, rotation, n-s pixel resolution
+	dst_ds.SetGeoTransform( [ minLon, resolution, 0, minLat, 0, resolution ] )
+	# set the reference info 
+	srs = osr.SpatialReference()
+	srs.SetWellKnownGeogCS("WGS84")
+	dst_ds.SetProjection( srs.ExportToWkt() )
+	dst_ds.GetRasterBand(1).WriteArray(raster)
+def resampling(Z):
+	H = np.zeros_like( Z )
+	minH = abs(Z).min()
+	maxH = abs(Z).max()
+	delta = maxH -minH
+	for i in range( Z.shape[0] ):
+	    for j in range( Z.shape[1] ):
+	        H[i,j] = np.round( (255*(Z[i,j] - minH))/delta )
+	return H
+def getTrendValue(curve, lat, lon):
+	#curve: z = ax + by + c
+	return curve[0]*lat + curve[1]*lon + curve[2]				
+#TEST
+#A = np.array([(19,20,24), (10,40,28), (10,50,31)])
+'''
+A = []
+for x in xrange(1,10):
+	item = (x, x+1, x+2)
+	A.append(item)
+A = np.asarray(A)
+curveFitting(A)
+minLat = 8.4
+maxLat = 23.6
+minLon = 102.1
+maxLon = 109.8
+shift = 0.1
+row = int((maxLat-minLat)/shift)
+col = int((maxLon-minLon)/shift)
+raster = np.zeros( (row, col) )
+for x in xrange(10,20):
+	for y in xrange(10,20):
+		raster[x][y] = 100
+exportGeotiff('filename', raster, row, col, shift, minLon, minLat)
+'''

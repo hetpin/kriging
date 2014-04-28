@@ -112,7 +112,9 @@ def getTempOfAAtationFromTo(station_id, date_from, date_to):
 			temp13 = row["obs_temp13"]
 			#print alt
 			#print temp13
-			temp13 = temp13 + 0.6*(alt//100) #for normalize by alt
+			
+			#temp13 = temp13 + 0.6*(alt//100) #for normalize by alt
+			
 			#print temp13
 			#time.sleep(1)
 	    	#item0 for id, item1 for lat, item2 for lon, item3 for temperature value
@@ -142,12 +144,14 @@ def getAllObservation():
 	try:
 	    con = psycopg2.connect(database='fimo_db', user='postgres') 
 	    cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
-	    query = "select sta.station_id ,sta.station_lat, sta.station_long from station as sta order by sta.station_id"
+	    query = "select sta.station_id ,sta.station_lat, sta.station_long, sta.station_area_id from station as sta order by sta.station_id"
 	    cursor.execute(query)
 	    #print cursor.rowcount
 	    rows = cursor.fetchall()
 	    for row in rows:
-			item = [row["station_id"], row["station_lat"], row["station_long"]]
+			item = [row["station_id"], row["station_lat"], row["station_long"], row["station_area_id"]]
+			if row["station_area_id"] == 2:
+				item[3] = 7
 			#print item
 			if row["station_id"] == 98:
 				continue
