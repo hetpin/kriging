@@ -4,8 +4,9 @@ import time, os
 import matplotlib
 import matplotlib.pyplot as plt
 from get_data import getTempOfAAtationFromTo,isInVietnam,getAreaIdFromPoint
-from get_data import getAllObservation,getAllStaByAreaId
-from Utility import haversine, covariance, semivariance, opt,spherical, genFitting, semiToCov, curveFitting,inverseMatrix,exportGeotiff,resampling
+from get_data import getAllObservation,getAllStaByAreaId, getTempOfAAtationADay
+from Utility import haversine, covariance, semivariance, opt,spherical, genFitting, semiToCov, curveFitting,inverseMatrix,exportGeotiff,resampling, getTrendValue
+from Utility import slide, calculateSE
 from operator import itemgetter, attrgetter
 from surface3d_demo import plotSurface
 
@@ -15,8 +16,15 @@ LAT_MIN = 8.4
 LAT_MAX = 23.4
 LON_MIN = 102.1
 LON_MAX = 109.4
-date_from= '2011-11-01' # for all pairs
-date_to = '2011-11-28'  # for all pairs
+minLat = 8.4
+maxLat = 23.6
+minLon = 102.1
+maxLon = 109.8
+shift = 0.1
+row = int((maxLat-minLat)/shift)
+col = int((maxLon-minLon)/shift)
+date_from= '2011-08-01' # for all pairs
+date_to = '2011-08-28'  # for all pairs
 #date_from= '2011-01-01'
 #date_to = '2011-01-15'
 neighbor = 10
@@ -31,19 +39,20 @@ list_mean = []
 #Contain models for all area
 global_data = {}
 #Global curve trending ( z = ax + by + c )
-trend_curve = 0
+trend_curve = [0,0,0]
 #Log file
 f = open('log_one_model.txt', 'w')
 
 #FUNCTIONS
 def generateGlobalMatrix( date_from, date_to, list_all_station):
+	global trend_curve
 	list_station = list_all_station
 	#print list_station
 	meteo_size = len(list_station)
 	list_mean = []
 	for i in xrange(0,meteo_size):
 		#print list_station[i][0]
-		item = getTempOfAAtationFromTo( list_station[i][0],date_from, date_to)
+		item = getTempOfAAtationFromTo( list_station[i][3],date_from, date_to)
 		list_all = zip(*item)
 		#3 for temp, 4 for humid, 5 for rain
 		list_temp = list_all[3]
@@ -81,7 +90,7 @@ def generateGlobalMatrix( date_from, date_to, list_all_station):
 		f.write(str(item) + '\n')
 	'''
 	#print G[0:5,0:5]
-	#return G
+	return trend_curve
 def reGenerateSemiMatrix(list_all_station):
 	G = np.zeros([MATRIX_SIZE, MATRIX_SIZE])
 	a0, c0 = global_data[0][0], global_data[0][1]
@@ -93,6 +102,7 @@ def reGenerateSemiMatrix(list_all_station):
 			h = D[x][y]#distance
 			G_COV[x][y] = semiToCov( h, a0, c0)
 			#print x, y, h, G_COV[x][y] 
+
 #PRE-CALCULATE DISTANCE Gen all distance of all point
 def generateDistanceMatrix(list_sta_by_area):
 	#l = getAllObservation()
@@ -165,7 +175,7 @@ def krigeOne(point, neighbor, list_all_station, list_data, G, D):
 		#Cal distance one-one
 		item1 = list_station[i]
 		d = haversine(item0[2], item0[1] ,item1[2], item1[1])
-		newitem = (item1[0], d, item1[3])
+		newitem = (item1[0], d, item1[3], item1[1], item1[2])#id, distance, temp, lat, lon
 		list_d.append(newitem)
 	#Sort by distance, get n first nearest neighbors
 	sorted_list = sorted(list_d, key=itemgetter(1))
@@ -190,9 +200,11 @@ def krigeOne(point, neighbor, list_all_station, list_data, G, D):
 		#Nhiet do 1 thang cua tram item
 		#print len(list_data)
 		t = list_data[item[0]-1]
+		trendValue = getTrendValue(trend_curve, item[3], item[4])
+		#print trend_curve, trendValue
 		f.write(str(t) + '\n')
 		t_size = len(t)
-		T.append(t[t_size - 1])
+		T.append(t[t_size - 1] - trendValue)
 		j = 0
 		string = string + str(item[0])
 		#print item
@@ -208,6 +220,7 @@ def krigeOne(point, neighbor, list_all_station, list_data, G, D):
 			j = j + 1
 		string = string + '\n'
 		i = i + 1
+	f.write('T: ' + str(T) + '\n')
 	f.write('neighbors list: \n' + string + '\n')
 	#print string
 	#print k
@@ -332,7 +345,7 @@ def plot_period(list_h,list_value, area_id):
 	global_data[area_id] = sph
 	#plt.show()
 def saveAsPng(Z):
-	plt.show()
+	#plt.show()
 	plt.clf()
 	plt.savefig(os.path.splitext(os.path.basename('temp_sybthesize_view'))[0] + '.png')
 	cdict = {'red':   ((0.0, 1.0, 1.0),
@@ -374,64 +387,59 @@ def saveAsPng(Z):
 	CS = plt.contour(xi,yi,Z,10,linewidths=0.5,colors='k')
 	CS = plt.contourf(xi,yi,Z,10,cmap=plt.cm.rainbow,vmax=abs(Z).max(), vmin=-abs(Z).max())
 	plt.colorbar() # draw colorbar
-	plt.show()
-	plt.savefig(os.path.splitext(os.path.basename('krige_thang_2'))[0] + '.png')
+	#plt.show()
+	plt.savefig(os.path.splitext(os.path.basename('krige_thang_11'))[0] + '.png')
 	#plt.savefig( 'krigingpurple.png', fmt='png', dpi=200 )
-
-
-
 
 #MAIN PROGRAM
 #PROCESSING
 #1 GEN MODELS
-list_all_station = getAllObservation()
-print len(list_all_station)
-generateGlobalMatrix(date_from, date_to, list_all_station)
-D = generateDistanceMatrix(list_all_station)
-area_id = 0
-genModelForArea(area_id, list_all_station, list_data, G, D)
-reGenerateSemiMatrix(list_all_station)
-print 'GLOBAL DATA'
-print global_data
+def main_program(shuffi, isCrossValidation):
+	list_all_test = shuffi[0]
+	list_all_station = shuffi[1]
+	global D
+	#time.sleep(100)
+	print len(list_all_station)
+	trend_curve = generateGlobalMatrix(date_from, date_to, list_all_station)
+	D = generateDistanceMatrix(list_all_station)
+	area_id = 0
+	genModelForArea(area_id, list_all_station, list_data, G, D)
+	reGenerateSemiMatrix(list_all_station)
+	print 'GLOBAL DATA'
+	print global_data
+	derivation = np.zeros([row,col])
+	result = np.zeros([row,col])
+	for i in xrange(0,row):
+		#print i
+		for j in xrange(0, col):
+			#print i, j
+			point = (minLat + i*shift,minLon + j*shift)
+			f.write(str(i)+' '+ str(j)+ ':'+ str(point)  +'\n')
+			#if isInVietnam(point):
+			result[i][j], derivation[i][j] = krigeOne(point, neighbor, list_all_station, list_data, G, D)
+			trendValue = getTrendValue(trend_curve, point[0], point[1])
+			#print trendValue
+			result[i][j] = result[i][j] + trendValue
+	#exportGeotiff('filename', raster, row, col, shift, minLon, minLat)
+	if isCrossValidation == False:	
+		exportGeotiff('t08_GEOTIFF_simple_kriging_one_model', result, row, col, shift, minLon, minLat )
+	saveAsPng(result)
+	saveAsPng(derivation)
+	if isCrossValidation:	
+		return calculateSE(result, list_all_test, minLat, minLon, shift, date_to)
 #INTERPOLATE
-minLat = 8.4
-maxLat = 23.6
-minLon = 102.1
-maxLon = 109.8
-shift = 0.1
-row = int((maxLat-minLat)/shift)
-col = int((maxLon-minLon)/shift)
-derivation = np.zeros([row,col])
-result = np.zeros([row,col])
-for i in xrange(0,row):
-	print i
-	for j in xrange(0, col):
-		#print i, j
-		point = (minLat + i*shift,minLon + j*shift)
-		f.write(str(i)+' '+ str(j)+ ':'+ str(point)  +'\n')
-		#if isInVietnam(point):
-		result[i][j], derivation[i][j] = krigeOne(point, neighbor, list_all_station, list_data, G, D)
-f.close()
-#exportGeotiff('filename', raster, row, col, shift, minLon, minLat)
-exportGeotiff('t8_GEOTIFF_krige_ONE_MODEL_period', result, row, col, shift, minLon, minLat )
-saveAsPng(result)
-saveAsPng(derivation)
+isCrossValidation = False
+list_all_station = getAllObservation()
+#shulf for ten-fold cross validation
+if isCrossValidation:
+	shuff_dic = slide(10, list_all_station)
+	se = 0
+	for x in xrange(0,len(shuff_dic)):
+		se = se + main_program(shuff_dic[x], isCrossValidation)
+	print str(se/10)
+	f.write('SE: ' + str(se/10) + '\n')
+else:
+	item = [[], list_all_station]
+	main_program(item, isCrossValidation)
+	f.close()
 
-
-#for point in points:
-#	value = 0
-#	if isInVietnam(point):
-#		value = krigeOne(point, neighbor, list_all_station, list_data, G, D)
-	
-	#time.sleep(5)
-
-#area_id = 1
-
-#list_station = getAllStaByAreaId(area_id)
-#G = generateGlobalMatrix(date_from, date_to, list_station)
-#D = generateDistanceMatrix(list_station)
-
-#for item in points:
-#	krigeOne(item,neighbor,list_station, list_data, G, D)
-#krigeOne(hcm,neighbor,list_station, list_data, G, D)
-#genModelForArea(area_id, list_station, list_data, G, D)

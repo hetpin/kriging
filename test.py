@@ -9,7 +9,6 @@ curr_row = -1
 list_root = []
 empty_string = '-'
 
-
 for line in fileinput.input(glob.glob("data/*.xls")):
 	search = '1011.xls' #Tim tung thang cho nay
 	search_tram = 'Muong Te'

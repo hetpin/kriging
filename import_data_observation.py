@@ -9,7 +9,7 @@ from pprint import pprint
 curr_row = -1
 list_root = []
 empty_string = '-'
-#IMPORTING variable
+#IMPORTING variables
 list_ = []
 
 f = open('workfile.txt', 'w')

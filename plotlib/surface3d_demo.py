@@ -19,22 +19,21 @@ def plotSurface(curve, list_points):
 	X = np.arange(minLat, maxLat, 0.5)
 	Y = np.arange(minLon, maxLon, 0.5)
 	X, Y = np.meshgrid(X, Y)
-	#R = np.sqrt(X**2 + Y**2)
-	#Z = np.sin(R)
 	Z = curve[0]*X +curve[1]*Y +curve[2]
 	#Z = getTrendValue(curve, X, Y)
 	surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
 	        linewidth=0, antialiased=False)
+	#for i in xrange(1,len(xs)):
+	#	print xs[i], ys[i], zs[i]
 	ax.scatter(xs, ys, zs, c='g', marker='o')
-	#ax.set_zlim(-1.01, 1.01)
-
-	#ax.zaxis.set_major_locator(LinearLocator(10))
-	#ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
 	fig.colorbar(surf, shrink=0.5, aspect=5)
-
+	print len(list_points)
+	print curve
 	plt.show()
 '''
+z = ax + by +c
+cruve = [a, b, c]
 curve = [1,10,-3]
 plotSurface(curve)
 '''

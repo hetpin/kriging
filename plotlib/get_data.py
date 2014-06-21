@@ -2,6 +2,12 @@
 import psycopg2, time, sys
 import psycopg2.extras
 from pprint import pprint
+from setting import *
+
+#Setting for switch table of terra
+table_terra = 'terra'
+#table_terra = 'terra_2'
+
 def getObservationList(query_date):
 	list = []
 	con = None
@@ -113,7 +119,7 @@ def getTempOfAAtationFromTo(station_id, date_from, date_to):
 			#print alt
 			#print temp13
 			
-			#temp13 = temp13 + 0.6*(alt//100) #for normalize by alt
+			temp13 = temp13 + 0.64*(alt/100) #for normalize by alt
 			
 			#print temp13
 			#time.sleep(1)
@@ -137,6 +143,51 @@ def getTempOfAAtationFromTo(station_id, date_from, date_to):
 	    if con:
 	        con.close()
 	return list
+def getTempOfAAtationADay(station_id, track_date):
+	#print 'geting data of ', station_id, ' from ', date_from, ' to ', date_to
+	list = []
+	con = None
+	try:
+	    con = psycopg2.connect(database='fimo_db', user='postgres') 
+	    cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+	    query = "select sta.station_id ,sta.station_lat, sta.station_long, obs.obs_temp13,obs_humid13,obs_rain13,obs.obs_date, sta.station_alt from observation as obs, station as sta where obs.obs_station_id = sta.station_id and obs.obs_date = "+"'"+track_date+"'" + " and " +"obs.obs_station_id = "+ str(station_id) +" order by obs.obs_date"
+	    #print query
+	    cursor.execute(query)
+	    #print cursor.rowcount
+	    rows = cursor.fetchall()
+	    for row in rows:
+			alt = row["station_alt"]
+			temp13 = row["obs_temp13"]
+			#print alt
+			#print temp13
+			
+			#temp13 = temp13 + 0.6*(alt//100) #for normalize by alt
+			
+			#print temp13
+			#time.sleep(1)
+	    	#item0 for id, item1 for lat, item2 for lon, item3 for temperature value
+			item = [row["station_id"], row["station_lat"], row["station_long"], alt, temp13, row["obs_humid13"], row["obs_rain13"], str(row["obs_date"])]
+			#print item
+			list.append(item)
+			obs_temp = str(row["obs_temp13"])
+			if float(obs_temp) < 2:
+				#print obs_temp
+				continue
+	except psycopg2.DatabaseError, e:
+	    
+	    if con:
+	        con.rollback()
+	    
+	    print 'Error %s' % e    
+	    sys.exit(1)
+	finally:
+	    
+	    if con:
+	        con.close()
+	if len(list) != 0:
+		return list[0]
+	else:
+		return list
 #Get all Station
 def getAllObservation():
 	list = []
@@ -144,23 +195,20 @@ def getAllObservation():
 	try:
 	    con = psycopg2.connect(database='fimo_db', user='postgres') 
 	    cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
-	    query = "select sta.station_id ,sta.station_lat, sta.station_long, sta.station_area_id from station as sta order by sta.station_id"
+	    query = "select sta.station_id ,sta.station_lat, sta.station_long, sta.station_area_id, sta.station_alt from station as sta order by sta.station_id"
 	    cursor.execute(query)
 	    #print cursor.rowcount
 	    rows = cursor.fetchall()
 	    for row in rows:
-			item = [row["station_id"], row["station_lat"], row["station_long"], row["station_area_id"]]
+			item = [row["station_id"], row["station_lat"], row["station_long"], row["station_area_id"], row["station_alt"]]
 			if row["station_area_id"] == 2:
 				item[3] = 7
-			#print item
 			if row["station_id"] == 98:
 				continue
 			list.append(item)
 	except psycopg2.DatabaseError, e:
-	    
 	    if con:
 	        con.rollback()
-	    
 	    print 'Error %s' % e    
 	    sys.exit(1)
 	finally:
@@ -311,6 +359,149 @@ def isInVietnam(point):
 		if con:
 			con.close()
 	return result
+#Get all pair: Terra-Observation
+#Return list of item [station_id, terra_temp, obs_temp, terra_date, obs_time]
+def getTerraObsPairs():
+	list = []
+	con = None
+	try:
+		con = psycopg2.connect(database='fimo_db', user='postgres') 
+		cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+		query = 'select obs.obs_station_id, ter.terra_temp, obs.obs_temp13, ter.terra_date, ter.terra_time from ' +table_terra+' as ter, observation as obs' 
+		query = query + " where ter.terra_station_id = obs.obs_station_id and ter.terra_date = obs.obs_date and ter.terra_time::time > '09:00:00' and ter.terra_time::time < '17:00:00' "
+		cursor.execute(query)
+		print 'Got ' ,cursor.rowcount, 'pair (Terra-Obs)'
+		rows = cursor.fetchall()
+		for row in rows:
+			item = [row["obs_station_id"], row["terra_temp"], row["obs_temp13"], row["terra_date"], row["terra_time"]]
+			#print item
+			if row["obs_station_id"] == 98:
+				continue
+			list.append(item)
+
+	except psycopg2.DatabaseError, e:
+	    if con:
+	        con.rollback()
+	    print 'Error %s' % e    
+	    sys.exit(1)
+	finally:
+	    if con:
+	        con.close()
+	return list
+def getAvgAllStationAllTime():
+	list = []
+	con = None
+	try:
+		con = psycopg2.connect(database='fimo_db', user='postgres') 
+		cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+		query = 'select obs.obs_station_id as id, avg(sta.station_lat) as lat, avg(sta.station_long) as lon, avg(obs.obs_temp13) as avg ' 
+		query = query + " from observation as obs, station as sta where obs.obs_station_id = sta.station_id group by obs_station_id order by obs.obs_station_id "
+		cursor.execute(query)
+		print 'Got ' ,cursor.rowcount, ' station average'
+		rows = cursor.fetchall()
+		for row in rows:
+			item = [row["id"], row["lat"], row["lon"], row["avg"]]
+			#print item
+			if row["id"] == 98:
+				continue
+			list.append(item)
+
+	except psycopg2.DatabaseError, e:
+	    if con:
+	        con.rollback()
+	    print 'Error %s' % e    
+	    sys.exit(1)
+	finally:
+	    if con:
+	        con.close()
+	return list
+#Get avg temp of all station in a month, every year.
+def getAvgAllStationAMonth(month):
+	list = []
+	con = None
+	try:
+		con = psycopg2.connect(database='fimo_db', user='postgres') 
+		cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+		query = 'select obs.obs_station_id as id, avg(sta.station_lat) as lat, avg(sta.station_long) as lon, avg(obs.obs_temp13) as avg from observation as obs, station as sta '
+		query = query + 'where obs.obs_station_id = sta.station_id and extract(month from obs.obs_date) = '+ str(month) + ' group by obs_station_id order by obs.obs_station_id'
+		cursor.execute(query)
+		print 'Got ' ,cursor.rowcount, ' station average'
+		rows = cursor.fetchall()
+		for row in rows:
+			item = [row["id"], row["lat"], row["lon"], row["avg"]]
+			#print item
+			if row["id"] == 98:
+				continue
+			list.append(item)
+
+	except psycopg2.DatabaseError, e:
+	    if con:
+	        con.rollback()
+	    print 'Error %s' % e    
+	    sys.exit(1)
+	finally:
+	    if con:
+	        con.close()
+	return list
+
+#BUGGY function	
+def getAvgAllStation(date_from, date_to):
+	list = []
+	con = None
+	try:
+		con = psycopg2.connect(database='fimo_db', user='postgres') 
+		cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+		query = 'select obs.obs_station_id as id, avg(sta.station_lat) as lat, avg(sta.station_long) as lon, avg(obs.obs_temp13) as avg ' 
+		query = query + " from observation as obs, station as sta where obs.obs_station_id = sta.station_id and obs.obs_date >= "+"'"+date_from+"'" + " and " +"obs.obs_date <= "+"'"+date_to+"'"
+		+" group by obs_station_id order by obs.obs_station_id "
+		print query
+		cursor.execute(query)
+		print 'Got ' ,cursor.rowcount, ' station average'
+		rows = cursor.fetchall()
+		for row in rows:
+			item = [row["id"], row["lat"], row["lon"], row["avg"]]
+			#print item
+			if row["id"] == 98:
+				continue
+			list.append(item)
+
+	except psycopg2.DatabaseError, e:
+	    if con:
+	        con.rollback()
+	    print 'Error %s' % e    
+	    sys.exit(1)
+	finally:
+	    if con:
+	        con.close()
+	return list
+#Get Satelite data of a day: Temp +- 4 hours
+def getSateliteADay(date):
+	list = []
+	con = None
+	try:
+		con = psycopg2.connect(database='fimo_db', user='postgres') 
+		cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+		query = "select station_id, station_lat, station_long, station_alt, ter.terra_temp, ter.terra_humid, ter.terra_rain from "+table_terra+" as ter, station as sta "
+		query = query + "where ter.terra_station_id = sta.station_id and ter.terra_date = '" + date +"' and ter.terra_time::time > '09:00:00' and ter.terra_time::time < '17:00:00'"
+		query = query + " order by terra_station_id"
+		cursor.execute(query)
+		print 'Got ' ,cursor.rowcount, 'Satelite data for ', date
+		rows = cursor.fetchall()
+		# station_id, lat, lon, alt, temp, humid, rain 
+		for row in rows:
+			item = [row["station_id"], row["station_lat"], row["station_long"], row["station_alt"], row["terra_temp"], row["terra_humid"], row["terra_rain"]]
+			list.append(item)
+	except psycopg2.DatabaseError, e:
+	    if con:
+	        con.rollback()
+	    print 'Error %s' % e    
+	    sys.exit(1)
+	finally:
+	    if con:
+	        con.close()
+	return list
+#getAvgAllStationAMonth(3)
+#getAvgAllStation("2011-03-01", "2011-03-30")
 
 #result = getAllStaByAreaId(1)
 #print result
@@ -325,3 +516,34 @@ def isInVietnam(point):
 #getTempOfAAtationFromTo(1, '2011-01-02', '2011-01-10')
 
 #print isInVietnam([21, 105])
+#print getTempOfAAtationADay(1, '2011-11-10')
+#getTerraObsPairs()
+
+#FOR MOISETURE
+def moiseture_getTerraObsPairs():
+	list = []
+	con = None
+	try:
+		con = psycopg2.connect(database='fimo_db', user='postgres') 
+		cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+		query = 'select obs.obs_station_id, ter.terra_humid, obs.obs_humid13, ter.terra_date, ter.terra_time from '+table_terra+' as ter, observation as obs' 
+		query = query + " where ter.terra_station_id = obs.obs_station_id and ter.terra_date = obs.obs_date and ter.terra_time::time > '09:00:00' and ter.terra_time::time < '17:00:00' "
+		cursor.execute(query)
+		print 'Got ' ,cursor.rowcount, 'pair (Terra-Moisture-Obs)'
+		rows = cursor.fetchall()
+		for row in rows:
+			item = [row["obs_station_id"], row["terra_humid"], row["obs_humid13"], row["terra_date"], row["terra_time"]]
+			#print item
+			if row["obs_station_id"] == 98:
+				continue
+			list.append(item)
+
+	except psycopg2.DatabaseError, e:
+	    if con:
+	        con.rollback()
+	    print 'Error %s' % e    
+	    sys.exit(1)
+	finally:
+	    if con:
+	        con.close()
+	return list

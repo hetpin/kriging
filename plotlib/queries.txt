@@ -1,0 +1,7 @@
+1. Chon ra tat ca cac pairs: Terra-Observation trong 1 ngay xxxx-xx-xx
+select obs.obs_station_id, ter.terra_temp, obs.obs_temp13, ter.terra_date, ter.terra_time from terra as ter, observation as obs 
+where ter.terra_station_id = obs.obs_station_id and ter.terra_date = obs.obs_date and ter.terra_time::time > '09:00:00' and ter.terra_time::time < '17:00:00' 
+and ter.terra_date='2011-08-28'
+2. Chon tat ca cac du lieu terra trong 1 ngay, 1 tram.
+select * from terra as ter
+where ter.terra_date = '2011-08-28' and ter.terra_station_id =4

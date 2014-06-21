@@ -4,8 +4,9 @@ import time, os
 import matplotlib
 import matplotlib.pyplot as plt
 from get_data import getTempOfAAtationFromTo,isInVietnam,getAreaIdFromPoint
-from get_data import getAllObservation,getAllStaByAreaId
-from Utility import haversine, covariance, semivariance, opt,spherical, genFitting, semiToCov, curveFitting,inverseMatrix,exportGeotiff,resampling
+from get_data import getAllObservation,getAllStaByAreaId, getTempOfAAtationADay
+from Utility import haversine, covariance, semivariance, opt,spherical, genFitting, semiToCov, curveFitting,inverseMatrix,exportGeotiff,resampling, getTrendValue
+from Utility import slide, calculateSE
 from operator import itemgetter, attrgetter
 from surface3d_demo import plotSurface
 
@@ -15,8 +16,15 @@ LAT_MIN = 8.4
 LAT_MAX = 23.4
 LON_MIN = 102.1
 LON_MAX = 109.4
-date_from= '2011-11-01' # for all pairs
-date_to = '2011-11-28'  # for all pairs
+minLat = 8.4
+maxLat = 23.6
+minLon = 102.1
+maxLon = 109.8
+shift = 0.1
+row = int((maxLat-minLat)/shift)
+col = int((maxLon-minLon)/shift)
+date_from= '2011-06-01' # for all pairs
+date_to = '2011-06-28'  # for all pairs
 #date_from= '2011-01-01'
 #date_to = '2011-01-15'
 neighbor = 10
@@ -31,7 +39,7 @@ list_mean = []
 #Contain models for all area
 global_data = {}
 #Global curve trending ( z = ax + by + c )
-trend_curve = 0
+trend_curve = [0,0,0]
 #Log file
 f = open('log_area_model.txt', 'w')
 
@@ -175,11 +183,11 @@ def krigeOne(point, neighbor, list_all_station, list_data, G, D):
 	string = ''
 	i = 0 
 	for  item in list_neighbor:
-		f.write('getting T\n')
+		#f.write('getting T\n')
 		#Nhiet do 1 thang cua tram item
 		#print len(list_data)
 		t = list_data[item[0]-1]
-		f.write(str(t) + '\n')
+		#f.write(str(t) + '\n')
 		t_size = len(t)
 		T.append(t[t_size - 1])
 		j = 0
@@ -196,20 +204,20 @@ def krigeOne(point, neighbor, list_all_station, list_data, G, D):
 			j = j + 1
 		string = string + '\n'
 		i = i + 1
-	f.write('neighbors list: \n' + string + '\n')
+	#f.write('neighbors list: \n' + string + '\n')
 	#print string
 	#print k
 	#print K
-	f.write('K: \n' + str(K) +' \n')
-	f.write('k: \n' + str(k) +' \n')
+	#f.write('K: \n' + str(K) +' \n')
+	#f.write('k: \n' + str(k) +' \n')
 	weight = np.dot(K,k)
-	f.write('ori-weight: \n' + str(weight) +' \n')
+	#f.write('ori-weight: \n' + str(weight) +' \n')
 	if sum(weight) == 0:
 		f.write('NOT RELATED\n')
 		weight[:] = 1 #assign the same weight for all elements
 	weight = weight/sum(weight)
 	krige = np.dot(T, weight)
-	f.write('nor-weight: \n' + str(weight) +' \n')
+	#f.write('nor-weight: \n' + str(weight) +' \n')
 	f.write('T: \n' + str(T)+' \n')
 	f.write('krige: ' + str(krige)+' \n')
 	#print krige
@@ -424,7 +432,7 @@ for i in xrange(0,row):
 		result[i][j], derivation[i][j] = krigeOne(point, neighbor, list_all_station, list_data, G, D)
 f.close()
 #exportGeotiff('filename', raster, row, col, shift, minLon, minLat)
-exportGeotiff('t8_GEOTIFF_krige_AREA_MODEL', result, row, col, shift, minLon, minLat )
+exportGeotiff('t2_GEOTIFF_krige_AREA_MODEL', result, row, col, shift, minLon, minLat )
 saveAsPng(result)
 saveAsPng(derivation)
 
